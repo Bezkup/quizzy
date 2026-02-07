@@ -1,0 +1,171 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0f0f23;
+  color: #ffffff;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ---- Responsive utilities ---- */
+
+.page-container {
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.page-container--wide {
+  max-width: 900px;
+}
+
+.page-container--narrow {
+  max-width: 700px;
+}
+
+/* Options grid: 2 columns on desktop, 1 on mobile */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.option-btn {
+  padding: 1.2rem 1rem;
+  border-radius: 12px;
+  border: 3px solid transparent;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 70px;
+  word-break: break-word;
+}
+
+/* Quiz card grid */
+.quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Dashboard header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Game code display */
+.game-code {
+  font-size: 3rem;
+  font-weight: bold;
+  letter-spacing: 0.5rem;
+  color: #6c5ce7;
+  margin: 1rem 0;
+  word-break: break-all;
+}
+
+/* Question option row in editor */
+.option-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.correct-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+/* Question meta bar */
+.question-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  color: #b2bec3;
+}
+
+/* Leaderboard row */
+.leaderboard-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #0f0f23;
+}
+
+.leaderboard-row--top {
+  background: #2d1b69;
+}
+
+/* ---- Mobile styles (< 480px) ---- */
+
+@media (max-width: 480px) {
+  .page-container,
+  .page-container--wide,
+  .page-container--narrow {
+    padding: 1rem;
+  }
+
+  .options-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .option-btn {
+    min-height: 60px;
+    font-size: 1rem;
+    padding: 1rem;
+  }
+
+  .quiz-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .game-code {
+    font-size: 2.2rem;
+    letter-spacing: 0.3rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .option-row {
+    flex-wrap: nowrap;
+  }
+
+  .leaderboard-row {
+    padding: 0.6rem 0.75rem;
+  }
+}

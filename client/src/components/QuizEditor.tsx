@@ -1,5 +1,6 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { getQuiz, createQuiz, updateQuiz } from '../services/api';
+import {type FormEvent, useEffect, useState} from 'react';
+import {createQuiz, getQuiz, updateQuiz} from '../services/api';
+import {Button, Card, Input} from './ui';
 
 interface QuestionForm {
   question_text: string;
@@ -123,47 +124,38 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
     <div className="page-container page-container--narrow">
       <div style={styles.header}>
         <h2>{quizId ? 'Edit Quiz' : 'Create Quiz'}</h2>
-        <button style={styles.cancelBtn} onClick={onCancel}>← Back</button>
+        <Button variant="ghost" onClick={onCancel}>← Back</Button>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div style={styles.field}>
           <label style={styles.label}>Title</label>
-          <input
-            style={styles.input}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Quiz title"
-            required
-          />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Quiz title" required/>
         </div>
 
         <div style={styles.field}>
           <label style={styles.label}>Description</label>
-          <input
-            style={styles.input}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
-          />
+          <Input value={description} onChange={(e) => setDescription(e.target.value)}
+                 placeholder="Optional description"/>
         </div>
 
         <div style={styles.field}>
           <label style={styles.label}>Timer (seconds per question)</label>
-          <input
-            style={{ ...styles.input, width: '100px' }}
+          <Input
             type="number"
             min={5}
             max={120}
             value={timerSeconds}
             onChange={(e) => setTimerSeconds(Number(e.target.value))}
+            fullWidth={false}
+            style={{width: '100px'}}
           />
         </div>
 
         <h3 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Questions</h3>
 
         {questions.map((q, qi) => (
-          <div key={qi} style={styles.questionCard}>
+            <Card key={qi} style={{borderRadius: '12px', marginBottom: '1.25rem'}}>
             <div style={styles.questionHeader}>
               <span style={styles.questionNumber}>Q{qi + 1}</span>
               {questions.length > 1 && (
@@ -173,8 +165,7 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
               )}
             </div>
 
-            <input
-              style={styles.input}
+              <Input
               value={q.question_text}
               onChange={(e) => updateQuestion(qi, e.target.value)}
               placeholder="Enter your question..."
@@ -187,27 +178,21 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
                   <button
                     type="button"
                     className="correct-toggle"
-                    style={{
-                      background: opt.is_correct ? '#00b894' : '#636e72',
-                    }}
+                    style={{background: opt.is_correct ? '#00b894' : '#636e72'}}
                     onClick={() => setCorrectOption(qi, oi)}
                     title={opt.is_correct ? 'Correct answer' : 'Mark as correct'}
                   >
                     ✓
                   </button>
-                  <input
-                    style={{ ...styles.input, flex: 1 }}
+                  <Input
                     value={opt.option_text}
                     onChange={(e) => updateOption(qi, oi, e.target.value)}
                     placeholder={`Option ${oi + 1}`}
                     required
+                    style={{flex: 1}}
                   />
                   {q.options.length > 2 && (
-                    <button
-                      type="button"
-                      style={styles.removeOptionBtn}
-                      onClick={() => removeOption(qi, oi)}
-                    >
+                      <button type="button" style={styles.removeOptionBtn} onClick={() => removeOption(qi, oi)}>
                       ✕
                     </button>
                   )}
@@ -217,43 +202,29 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
                 + Add Option
               </button>
             </div>
-          </div>
+            </Card>
         ))}
 
         <button type="button" style={styles.addQuestionBtn} onClick={addQuestion}>
           + Add Question
         </button>
 
-        {error && <div style={styles.error}>{error}</div>}
+        {error && <div style={{color: '#e74c3c', textAlign: 'center', marginBottom: '1rem'}}>{error}</div>}
 
-        <button type="submit" style={styles.saveBtn} disabled={saving}>
+        <Button type="submit" fullWidth disabled={saving} style={{fontSize: '1.1rem'}}>
           {saving ? 'Saving...' : quizId ? 'Update Quiz' : 'Create Quiz'}
-        </button>
+        </Button>
       </form>
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { padding: '2rem', maxWidth: '700px', margin: '0 auto' },
   header: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem',
   },
-  cancelBtn: {
-    padding: '0.5rem 1rem', borderRadius: '8px', border: '2px solid #636e72',
-    background: 'transparent', color: '#b2bec3', cursor: 'pointer',
-  },
   field: { marginBottom: '1rem' },
   label: { display: 'block', marginBottom: '0.4rem', color: '#b2bec3', fontSize: '0.9rem' },
-  input: {
-    width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px',
-    border: '2px solid #333366', background: '#0f0f23', color: '#fff',
-    fontSize: '1rem', outline: 'none',
-  },
-  questionCard: {
-    background: '#1a1a3e', borderRadius: '12px', padding: '1.25rem',
-    marginBottom: '1.25rem',
-  },
   questionHeader: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem',
   },

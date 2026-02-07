@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react';
-import { useSocket } from '../hooks/useSocket';
+import {type FormEvent, useState} from 'react';
+import {useSocket} from '../hooks/useSocket';
+import {Button, Card, Input} from '../components/ui';
 import Leaderboard from '../components/Leaderboard';
 
 export default function PlayerView() {
@@ -24,30 +25,30 @@ export default function PlayerView() {
   if (!joined || phase === 'idle') {
     return (
       <div className="page-container">
-        <div style={styles.card}>
-          <h1 style={styles.title}>🧠 Quizzy</h1>
-          <p style={styles.subtitle}>Join a quiz game</p>
-          <form onSubmit={handleJoin} style={styles.form}>
-            <input
-              style={styles.input}
+          <Card centered style={{marginTop: '15vh', padding: '2rem'}}>
+              <h1 style={{fontSize: '2.5rem', marginBottom: '0.5rem'}}>🧠 Quizzy</h1>
+              <p style={{color: '#b2bec3', marginBottom: '2rem'}}>Join a quiz game</p>
+              <form onSubmit={handleJoin} style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                  <Input
               placeholder="Game Code"
               value={gameCode}
               onChange={(e) => setGameCode(e.target.value.toUpperCase())}
               maxLength={6}
               required
+              style={{textAlign: 'center', letterSpacing: '0.1rem', fontSize: '1.1rem'}}
             />
-            <input
-              style={styles.input}
+                  <Input
               placeholder="Your Name"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               maxLength={20}
               required
+              style={{textAlign: 'center', letterSpacing: '0.1rem', fontSize: '1.1rem'}}
             />
-            {error && <div style={styles.error}>{error}</div>}
-            <button type="submit" style={styles.joinBtn}>Join Game</button>
+                  {error && <div style={{color: '#e74c3c', fontSize: '0.9rem'}}>{error}</div>}
+                  <Button type="submit" fullWidth style={{fontSize: '1.2rem'}}>Join Game</Button>
           </form>
-        </div>
+          </Card>
       </div>
     );
   }
@@ -56,11 +57,11 @@ export default function PlayerView() {
   if (phase === 'waiting') {
     return (
       <div className="page-container">
-        <div style={styles.card}>
+          <Card centered style={{marginTop: '15vh', padding: '2rem'}}>
           <h2>⏳ Waiting for the game to start...</h2>
-          <p style={styles.subtitle}>You're in! Sit tight, {username}.</p>
-          {error && <div style={styles.error}>{error}</div>}
-        </div>
+              <p style={{color: '#b2bec3', marginTop: '1rem'}}>You're in! Sit tight, {username}.</p>
+              {error && <div style={{color: '#e74c3c', fontSize: '0.9rem', marginTop: '1rem'}}>{error}</div>}
+          </Card>
       </div>
     );
   }
@@ -71,9 +72,11 @@ export default function PlayerView() {
       <div className="page-container">
         <div className="question-meta">
           <span>Q{question.questionIndex + 1}/{question.totalQuestions}</span>
-          <span style={styles.timer}>⏱️ {Math.ceil(timeLeft)}s</span>
+            <span style={{fontSize: '1.3rem', fontWeight: 'bold', color: '#fdcb6e'}}>⏱️ {Math.ceil(timeLeft)}s</span>
         </div>
-        <h2 style={styles.questionText}>{question.questionText}</h2>
+          <h2 style={{textAlign: 'center', fontSize: '1.3rem', marginBottom: '1.5rem', lineHeight: 1.4}}>
+              {question.questionText}
+          </h2>
         <div className="options-grid">
           {question.options.map((opt, i) => {
             const colors = ['#e74c3c', '#3498db', '#f39c12', '#00b894', '#9b59b6', '#e84393'];
@@ -97,9 +100,7 @@ export default function PlayerView() {
           })}
         </div>
         {selectedAnswer !== null && (
-          <p style={{ textAlign: 'center', color: '#b2bec3', marginTop: '1rem' }}>
-            ✅ Answer locked in!
-          </p>
+            <p style={{textAlign: 'center', color: '#b2bec3', marginTop: '1rem'}}>✅ Answer locked in!</p>
         )}
       </div>
     );
@@ -110,17 +111,30 @@ export default function PlayerView() {
     const myResult = questionResult.playerResults.find((r) => r.username === username);
     return (
       <div className="page-container">
-        <div style={styles.revealCard}>
+          <Card style={{marginTop: '10vh', padding: '2rem'}}>
           <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>
             {myResult?.correct ? '🎉 Correct!' : '😞 Wrong!'}
           </h2>
-          <p style={styles.pointsText}>
+              <p style={{
+                  textAlign: 'center',
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                  color: '#fdcb6e',
+                  marginBottom: '1rem'
+              }}>
             {myResult?.correct ? `+${myResult.points} points` : '+0 points'}
           </p>
-          <div style={styles.correctAnswer}>
+              <div style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#00b89433',
+                  borderRadius: '10px',
+                  color: '#00b894',
+                  fontWeight: 'bold'
+              }}>
             Correct answer: {question.options.find((o) => o.id === questionResult.correctOptionId)?.text}
           </div>
-        </div>
+          </Card>
       </div>
     );
   }
@@ -130,9 +144,7 @@ export default function PlayerView() {
     return (
       <div className="page-container">
         <Leaderboard entries={leaderboard} />
-        <p style={{ textAlign: 'center', color: '#b2bec3', marginTop: '1rem' }}>
-          Waiting for next question...
-        </p>
+          <p style={{textAlign: 'center', color: '#b2bec3', marginTop: '1rem'}}>Waiting for next question...</p>
       </div>
     );
   }
@@ -142,15 +154,15 @@ export default function PlayerView() {
     const myEntry = leaderboard.find((e) => e.username === username);
     return (
       <div className="page-container">
-        <div style={styles.finishedCard}>
+          <Card centered style={{marginBottom: '1rem', padding: '2rem'}}>
           <h2>🏆 Game Over!</h2>
           {myEntry && (
-            <div style={styles.myResult}>
-              <div style={styles.finalRank}>#{myEntry.rank}</div>
-              <div style={styles.finalScore}>{myEntry.score} points</div>
+              <div style={{marginTop: '1rem'}}>
+                  <div style={{fontSize: '3rem', fontWeight: 'bold', color: '#6c5ce7'}}>#{myEntry.rank}</div>
+                  <div style={{fontSize: '1.3rem', color: '#fdcb6e'}}>{myEntry.score} points</div>
             </div>
           )}
-        </div>
+          </Card>
         <Leaderboard entries={leaderboard} />
       </div>
     );
@@ -162,46 +174,3 @@ export default function PlayerView() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  card: {
-    background: '#1a1a3e', borderRadius: '16px', padding: '2rem', textAlign: 'center',
-    marginTop: '15vh',
-  },
-  title: { fontSize: '2.5rem', marginBottom: '0.5rem' },
-  subtitle: { color: '#b2bec3', marginBottom: '2rem' },
-  form: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  input: {
-    padding: '0.85rem 1rem', borderRadius: '10px', border: '2px solid #333366',
-    background: '#0f0f23', color: '#fff', fontSize: '1.1rem', outline: 'none',
-    textAlign: 'center', letterSpacing: '0.1rem',
-  },
-  joinBtn: {
-    padding: '0.85rem', borderRadius: '10px', border: 'none', background: '#6c5ce7',
-    color: '#fff', fontWeight: 'bold', fontSize: '1.2rem', cursor: 'pointer',
-    minHeight: '48px',
-  },
-  error: { color: '#e74c3c', fontSize: '0.9rem' },
-  timer: { fontSize: '1.3rem', fontWeight: 'bold', color: '#fdcb6e' },
-  questionText: {
-    textAlign: 'center', fontSize: '1.3rem', marginBottom: '1.5rem', lineHeight: 1.4,
-  },
-  revealCard: {
-    background: '#1a1a3e', borderRadius: '16px', padding: '2rem', marginTop: '10vh',
-  },
-  pointsText: {
-    textAlign: 'center', fontSize: '1.5rem', fontWeight: 'bold', color: '#fdcb6e',
-    marginBottom: '1rem',
-  },
-  correctAnswer: {
-    textAlign: 'center', padding: '1rem', background: '#00b89433', borderRadius: '10px',
-    color: '#00b894', fontWeight: 'bold',
-  },
-  finishedCard: {
-    background: '#1a1a3e', borderRadius: '16px', padding: '2rem', textAlign: 'center',
-    marginBottom: '1rem',
-  },
-  myResult: { marginTop: '1rem' },
-  finalRank: { fontSize: '3rem', fontWeight: 'bold', color: '#6c5ce7' },
-  finalScore: { fontSize: '1.3rem', color: '#fdcb6e' },
-};

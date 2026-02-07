@@ -8,6 +8,7 @@ import {
   getGameByPlayerSocket,
   removeGame,
 } from '../services/gameSession.js';
+import {GameStatus, SocketEvent} from '../constants.js';
 import type {ClientToServerEvents, ServerToClientEvents} from '@shared/types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
@@ -15,62 +16,62 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
 export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToClientEvents>): void {
-  io.on('connection', (socket: GameSocket) => {
+  io.on(SocketEvent.CONNECTION, (socket: GameSocket) => {
     console.log(`Socket connected: ${socket.id}`);
 
     // Admin creates a game
-    socket.on('create_game', ({ quizId }) => {
+    socket.on(SocketEvent.CREATE_GAME, ({quizId}) => {
       try {
         // Verify admin token from handshake
         const token = socket.handshake.auth.token;
         if (!token) {
-          socket.emit('error', { message: 'Authentication required' });
+          socket.emit(SocketEvent.ERROR, {message: 'Authentication required'});
           return;
         }
 
         try {
           jwt.verify(token, JWT_SECRET);
         } catch {
-          socket.emit('error', { message: 'Invalid token' });
+          socket.emit(SocketEvent.ERROR, {message: 'Invalid token'});
           return;
         }
 
         // Prevent duplicate games from the same admin
         const existing = getGameByAdminSocket(socket.id);
         if (existing) {
-          socket.emit('game_created', { gameCode: existing.gameCode });
+          socket.emit(SocketEvent.GAME_CREATED, {gameCode: existing.gameCode});
           return;
         }
 
         const session = createGame(quizId, socket.id);
         socket.join(session.gameCode);
-        socket.emit('game_created', { gameCode: session.gameCode });
+        socket.emit(SocketEvent.GAME_CREATED, {gameCode: session.gameCode});
         console.log(`Game created: ${session.gameCode} for quiz ${quizId}`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to create game';
-        socket.emit('error', { message });
+        socket.emit(SocketEvent.ERROR, {message});
       }
     });
 
     // Player joins a game
-    socket.on('join_game', ({ gameCode, username }) => {
+    socket.on(SocketEvent.JOIN_GAME, ({gameCode, username}) => {
       try {
         const code = gameCode.toUpperCase();
         const session = getGame(code);
         if (!session) {
-          socket.emit('error', { message: 'Game not found' });
+          socket.emit(SocketEvent.ERROR, {message: 'Game not found'});
           return;
         }
 
         session.addPlayer(socket.id, username);
         socket.join(code);
 
-        io.to(code).emit('player_joined', {
+        io.to(code).emit(SocketEvent.PLAYER_JOINED, {
           username,
           playerCount: session.players.size,
         });
 
-        socket.emit('game_status', {
+        socket.emit(SocketEvent.GAME_STATUS, {
           status: session.status,
           playerCount: session.players.size,
         });
@@ -78,26 +79,26 @@ export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToCli
         console.log(`Player "${username}" joined game ${code}`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to join game';
-        socket.emit('error', { message });
+        socket.emit(SocketEvent.ERROR, {message});
       }
     });
 
     // Admin starts the game (first question)
-    socket.on('start_game', () => {
+    socket.on(SocketEvent.START_GAME, () => {
       const session = getGameByAdminSocket(socket.id);
       if (!session) {
-        socket.emit('error', { message: 'No game found' });
+        socket.emit(SocketEvent.ERROR, {message: 'No game found'});
         return;
       }
 
       if (session.players.size === 0) {
-        socket.emit('error', { message: 'No players have joined' });
+        socket.emit(SocketEvent.ERROR, {message: 'No players have joined'});
         return;
       }
 
       const questionData = session.startNextQuestion();
       if (!questionData) {
-        socket.emit('error', { message: 'No questions available' });
+        socket.emit(SocketEvent.ERROR, {message: 'No questions available'});
         return;
       }
 
@@ -105,7 +106,7 @@ export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToCli
     });
 
     // Player submits an answer
-    socket.on('submit_answer', ({ optionId }) => {
+    socket.on(SocketEvent.SUBMIT_ANSWER, ({optionId}) => {
       const session = getGameByPlayerSocket(socket.id);
       if (!session) return;
 
@@ -115,23 +116,23 @@ export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToCli
       // If all players answered, end question early
       if (session.allPlayersAnswered()) {
         const results = session.endQuestion();
-        io.to(session.gameCode).emit('question_end', results);
+        io.to(session.gameCode).emit(SocketEvent.QUESTION_END, results);
 
         const leaderboard = session.getLeaderboard();
-        session.status = 'leaderboard';
-        io.to(session.gameCode).emit('leaderboard_update', { leaderboard });
+        session.status = GameStatus.LEADERBOARD;
+        io.to(session.gameCode).emit(SocketEvent.LEADERBOARD_UPDATE, {leaderboard});
       }
     });
 
     // Admin advances to next question
-    socket.on('next_question', () => {
+    socket.on(SocketEvent.NEXT_QUESTION, () => {
       const session = getGameByAdminSocket(socket.id);
       if (!session) return;
 
       if (session.isLastQuestion()) {
-        session.status = 'finished';
+        session.status = GameStatus.FINISHED;
         const leaderboard = session.getLeaderboard();
-        io.to(session.gameCode).emit('game_end', { leaderboard });
+        io.to(session.gameCode).emit(SocketEvent.GAME_END, {leaderboard});
         removeGame(session.gameCode);
         return;
       }
@@ -142,23 +143,23 @@ export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToCli
     });
 
     // Admin ends game early
-    socket.on('end_game', () => {
+    socket.on(SocketEvent.END_GAME, () => {
       const session = getGameByAdminSocket(socket.id);
       if (!session) return;
 
-      session.status = 'finished';
+      session.status = GameStatus.FINISHED;
       const leaderboard = session.getLeaderboard();
-      io.to(session.gameCode).emit('game_end', { leaderboard });
+      io.to(session.gameCode).emit(SocketEvent.GAME_END, {leaderboard});
       removeGame(session.gameCode);
     });
 
     // Handle disconnect
-    socket.on('disconnect', () => {
+    socket.on(SocketEvent.DISCONNECT, () => {
       // Check if admin disconnected
       const adminGame = getGameByAdminSocket(socket.id);
       if (adminGame) {
-        adminGame.status = 'finished';
-        io.to(adminGame.gameCode).emit('game_end', { leaderboard: adminGame.getLeaderboard() });
+        adminGame.status = GameStatus.FINISHED;
+        io.to(adminGame.gameCode).emit(SocketEvent.GAME_END, {leaderboard: adminGame.getLeaderboard()});
         removeGame(adminGame.gameCode);
         console.log(`Admin disconnected, game ${adminGame.gameCode} ended`);
         return;
@@ -170,7 +171,7 @@ export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToCli
         const player = playerGame.players.get(socket.id);
         const username = player?.username ?? 'Unknown';
         playerGame.removePlayer(socket.id);
-        io.to(playerGame.gameCode).emit('player_left', {
+        io.to(playerGame.gameCode).emit(SocketEvent.PLAYER_LEFT, {
           username,
           playerCount: playerGame.players.size,
         });
@@ -188,14 +189,14 @@ const handleQuestion = (io: Server<ClientToServerEvents, ServerToClientEvents>, 
   options: { id: number; text: string }[];
   timerSeconds: number
 }) => {
-  io.to(session.gameCode).emit('question_start', questionData);
+  io.to(session.gameCode).emit(SocketEvent.QUESTION_START, questionData);
 
   session.setQuestionTimer(() => {
     const results = session.endQuestion();
-    io.to(session.gameCode).emit('question_end', results);
+    io.to(session.gameCode).emit(SocketEvent.QUESTION_END, results);
 
     const leaderboard = session.getLeaderboard();
-    session.status = 'leaderboard';
-    io.to(session.gameCode).emit('leaderboard_update', {leaderboard});
+    session.status = GameStatus.LEADERBOARD;
+    io.to(session.gameCode).emit(SocketEvent.LEADERBOARD_UPDATE, {leaderboard});
   });
 }

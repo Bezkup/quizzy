@@ -2,6 +2,7 @@ import {type FormEvent, useState} from 'react';
 import {useSocket} from '../hooks/useSocket';
 import {Button, Card, Input} from '../components/ui';
 import Leaderboard from '../components/Leaderboard';
+import {GameStatus} from '../constants';
 
 export default function PlayerView() {
   const [gameCode, setGameCode] = useState('');
@@ -22,7 +23,7 @@ export default function PlayerView() {
   };
 
   // Join form
-  if (!joined || phase === 'idle') {
+    if (!joined || phase === GameStatus.IDLE) {
     return (
       <div className="page-container">
           <Card centered style={{marginTop: '15vh', padding: '2rem'}}>
@@ -54,7 +55,7 @@ export default function PlayerView() {
   }
 
   // Waiting room
-  if (phase === 'waiting') {
+    if (phase === GameStatus.WAITING) {
     return (
       <div className="page-container">
           <Card centered style={{marginTop: '15vh', padding: '2rem'}}>
@@ -67,7 +68,7 @@ export default function PlayerView() {
   }
 
   // Question phase
-  if (phase === 'question' && question) {
+    if (phase === GameStatus.QUESTION && question) {
     return (
       <div className="page-container">
         <div className="question-meta">
@@ -107,7 +108,7 @@ export default function PlayerView() {
   }
 
   // Reveal phase
-  if (phase === 'reveal' && questionResult && question) {
+    if (phase === GameStatus.REVEAL && questionResult && question) {
     const myResult = questionResult.playerResults.find((r) => r.username === username);
     return (
       <div className="page-container">
@@ -140,7 +141,7 @@ export default function PlayerView() {
   }
 
   // Leaderboard phase
-  if (phase === 'leaderboard') {
+    if (phase === GameStatus.LEADERBOARD) {
     return (
       <div className="page-container">
         <Leaderboard entries={leaderboard} />
@@ -150,7 +151,7 @@ export default function PlayerView() {
   }
 
   // Game finished
-  if (phase === 'finished') {
+    if (phase === GameStatus.FINISHED) {
     const myEntry = leaderboard.find((e) => e.username === username);
     return (
       <div className="page-container">

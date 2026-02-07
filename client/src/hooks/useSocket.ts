@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
-import type { ServerToClientEvents, ClientToServerEvents, LeaderboardEntry } from '@shared/types';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {io, Socket} from 'socket.io-client';
+import {GameStatus, SocketEvent} from '../constants';
+import type {ClientToServerEvents, LeaderboardEntry, ServerToClientEvents} from '@shared/types';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
-export type GamePhase = 'idle' | 'waiting' | 'question' | 'reveal' | 'leaderboard' | 'finished';
+export type GamePhase = GameStatus;
 
 export interface QuestionData {
   questionIndex: number;
@@ -22,7 +23,7 @@ export interface QuestionResult {
 export function useSocket(token?: string) {
   const socketRef = useRef<GameSocket | null>(null);
   const [connected, setConnected] = useState(false);
-  const [phase, setPhase] = useState<GamePhase>('idle');
+  const [phase, setPhase] = useState<GamePhase>(GameStatus.IDLE);
   const [gameCode, setGameCode] = useState<string | null>(null);
   const [playerCount, setPlayerCount] = useState(0);
   const [question, setQuestion] = useState<QuestionData | null>(null);
@@ -40,32 +41,32 @@ export function useSocket(token?: string) {
 
     socketRef.current = socket;
 
-    socket.on('connect', () => setConnected(true));
-    socket.on('disconnect', () => setConnected(false));
+    socket.on(SocketEvent.CONNECT, () => setConnected(true));
+    socket.on(SocketEvent.DISCONNECT, () => setConnected(false));
 
-    socket.on('game_created', ({ gameCode }) => {
+    socket.on(SocketEvent.GAME_CREATED, ({gameCode}) => {
       setGameCode(gameCode);
-      setPhase('waiting');
+      setPhase(GameStatus.WAITING);
     });
 
-    socket.on('player_joined', ({ playerCount }) => {
+    socket.on(SocketEvent.PLAYER_JOINED, ({playerCount}) => {
       setPlayerCount(playerCount);
     });
 
-    socket.on('player_left', ({ playerCount }) => {
+    socket.on(SocketEvent.PLAYER_LEFT, ({playerCount}) => {
       setPlayerCount(playerCount);
     });
 
-    socket.on('game_status', ({ status, playerCount }) => {
-      setPhase(status);
+    socket.on(SocketEvent.GAME_STATUS, ({status, playerCount}) => {
+      setPhase(status as GameStatus);
       setPlayerCount(playerCount);
     });
 
-    socket.on('question_start', (data) => {
+    socket.on(SocketEvent.QUESTION_START, (data) => {
       setQuestion(data);
       setQuestionResult(null);
       setSelectedAnswer(null);
-      setPhase('question');
+      setPhase(GameStatus.QUESTION);
       setTimeLeft(data.timerSeconds);
 
       // Start countdown
@@ -81,30 +82,30 @@ export function useSocket(token?: string) {
       }, 100);
     });
 
-    socket.on('question_end', (data) => {
+    socket.on(SocketEvent.QUESTION_END, (data) => {
       setQuestionResult(data);
-      setPhase('reveal');
+      setPhase(GameStatus.REVEAL);
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
     });
 
-    socket.on('leaderboard_update', ({ leaderboard }) => {
+    socket.on(SocketEvent.LEADERBOARD_UPDATE, ({leaderboard}) => {
       setLeaderboard(leaderboard);
-      setPhase('leaderboard');
+      setPhase(GameStatus.LEADERBOARD);
     });
 
-    socket.on('game_end', ({ leaderboard }) => {
+    socket.on(SocketEvent.GAME_END, ({leaderboard}) => {
       setLeaderboard(leaderboard);
-      setPhase('finished');
+      setPhase(GameStatus.FINISHED);
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
     });
 
-    socket.on('error', ({ message }) => {
+    socket.on(SocketEvent.ERROR, ({message}) => {
       setError(message);
       setTimeout(() => setError(null), 5000);
     });
@@ -116,32 +117,32 @@ export function useSocket(token?: string) {
   }, [token]);
 
   const createGame = useCallback((quizId: number) => {
-    socketRef.current?.emit('create_game', { quizId });
+    socketRef.current?.emit(SocketEvent.CREATE_GAME, {quizId});
   }, []);
 
   const joinGame = useCallback((gameCode: string, username: string) => {
-    socketRef.current?.emit('join_game', { gameCode, username });
+    socketRef.current?.emit(SocketEvent.JOIN_GAME, {gameCode, username});
   }, []);
 
   const startGame = useCallback(() => {
-    socketRef.current?.emit('start_game');
+    socketRef.current?.emit(SocketEvent.START_GAME);
   }, []);
 
   const submitAnswer = useCallback((optionId: number) => {
     setSelectedAnswer(optionId);
-    socketRef.current?.emit('submit_answer', { optionId });
+    socketRef.current?.emit(SocketEvent.SUBMIT_ANSWER, {optionId});
   }, []);
 
   const nextQuestion = useCallback(() => {
-    socketRef.current?.emit('next_question');
+    socketRef.current?.emit(SocketEvent.NEXT_QUESTION);
   }, []);
 
   const endGame = useCallback(() => {
-    socketRef.current?.emit('end_game');
+    socketRef.current?.emit(SocketEvent.END_GAME);
   }, []);
 
   const resetState = useCallback(() => {
-    setPhase('idle');
+    setPhase(GameStatus.IDLE);
     setGameCode(null);
     setPlayerCount(0);
     setQuestion(null);

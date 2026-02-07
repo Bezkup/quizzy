@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import {deleteQuiz, getQuizzes} from '../services/api';
+import {AdminView} from '../constants';
 import type {Quiz} from '@shared/types';
 import {Button, Card} from '../components/ui';
 import QuizEditor from '../components/QuizEditor';
@@ -10,11 +11,9 @@ interface Props {
   onLogout: () => void;
 }
 
-type View = 'list' | 'create' | 'edit' | 'game';
-
 export default function AdminDashboard({ token, onLogout }: Props) {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [view, setView] = useState<View>('list');
+  const [view, setView] = useState<AdminView>(AdminView.LIST);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
 
@@ -39,23 +38,33 @@ export default function AdminDashboard({ token, onLogout }: Props) {
     }
   };
 
-  if (view === 'create' || view === 'edit') {
+  if (view === AdminView.CREATE || view === AdminView.EDIT) {
     return (
       <QuizEditor
         token={token}
         quizId={editingQuizId}
-        onSaved={() => { setView('list'); setEditingQuizId(null); loadQuizzes(); }}
-        onCancel={() => { setView('list'); setEditingQuizId(null); }}
+        onSaved={() => {
+          setView(AdminView.LIST);
+          setEditingQuizId(null);
+          loadQuizzes();
+        }}
+        onCancel={() => {
+          setView(AdminView.LIST);
+          setEditingQuizId(null);
+        }}
       />
     );
   }
 
-  if (view === 'game' && activeQuizId !== null) {
+  if (view === AdminView.GAME && activeQuizId !== null) {
     return (
       <GameControl
         token={token}
         quizId={activeQuizId}
-        onExit={() => { setView('list'); setActiveQuizId(null); }}
+        onExit={() => {
+          setView(AdminView.LIST);
+          setActiveQuizId(null);
+        }}
       />
     );
   }
@@ -65,7 +74,7 @@ export default function AdminDashboard({ token, onLogout }: Props) {
       <div className="dashboard-header">
         <h1>🧠 Quizzy Dashboard</h1>
         <div style={{display: 'flex', gap: '0.5rem'}}>
-          <Button variant="success" onClick={() => setView('create')}>+ New Quiz</Button>
+          <Button variant="success" onClick={() => setView(AdminView.CREATE)}>+ New Quiz</Button>
           <Button variant="ghost" onClick={onLogout}>Logout</Button>
         </div>
       </div>
@@ -86,13 +95,13 @@ export default function AdminDashboard({ token, onLogout }: Props) {
                 <div style={{display: 'flex', gap: '0.5rem'}}>
                   <Button style={{flex: 1}} onClick={() => {
                     setActiveQuizId(quiz.id);
-                    setView('game');
+                    setView(AdminView.GAME);
                   }}>
                   ▶ Play
                   </Button>
                   <Button variant="ghost" onClick={() => {
                     setEditingQuizId(quiz.id);
-                    setView('edit');
+                    setView(AdminView.EDIT);
                   }}>
                   ✏️ Edit
                   </Button>

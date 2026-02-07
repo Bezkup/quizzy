@@ -1,21 +1,22 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import {useState} from 'react';
+import {STORAGE_KEYS} from './constants';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PlayerView from './pages/PlayerView';
 
 function App() {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem('quizzy_token')
+      localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
   );
 
   const handleLogin = (newToken: string) => {
-    localStorage.setItem('quizzy_token', newToken);
+    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
     setToken(newToken);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('quizzy_token');
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     setToken(null);
   };
 

@@ -1,7 +1,15 @@
-import type { Player, GameState, QuestionWithOptions, LeaderboardEntry } from '../../../shared/types.js';
-import { calculateScore, buildLeaderboard, generateGameCode } from './scoring.js';
-import { getDb } from '../database/db.js';
-import type { Quiz, Question, Option } from '../../../shared/types.js';
+import {GameStatus} from '../constants.js';
+import type {
+  GameState,
+  LeaderboardEntry,
+  Option,
+  Player,
+  Question,
+  QuestionWithOptions,
+  Quiz
+} from '../../../shared/types.js';
+import {buildLeaderboard, calculateScore, generateGameCode} from './scoring.js';
+import {getDb} from '../database/db.js';
 
 export class GameSession {
   gameCode: string;
@@ -39,7 +47,7 @@ export class GameSession {
     this.currentQuestionIndex = -1;
     this.totalQuestions = this.questions.length;
     this.timerSeconds = quiz.timer_seconds;
-    this.status = 'waiting';
+    this.status = GameStatus.WAITING;
     this.questionStartTime = null;
     this.adminSocketId = adminSocketId;
     this.questionResults = new Map();
@@ -47,7 +55,7 @@ export class GameSession {
   }
 
   addPlayer(socketId: string, username: string): Player {
-    if (this.status !== 'waiting') {
+    if (this.status !== GameStatus.WAITING) {
       throw new Error('Game has already started');
     }
 
@@ -73,13 +81,6 @@ export class GameSession {
     this.players.delete(socketId);
   }
 
-  getCurrentQuestion(): QuestionWithOptions | null {
-    if (this.currentQuestionIndex < 0 || this.currentQuestionIndex >= this.questions.length) {
-      return null;
-    }
-    return this.questions[this.currentQuestionIndex];
-  }
-
   startNextQuestion(): {
     questionIndex: number;
     totalQuestions: number;
@@ -92,7 +93,7 @@ export class GameSession {
       return null;
     }
 
-    this.status = 'question';
+    this.status = GameStatus.QUESTION;
     this.questionStartTime = Date.now();
     this.questionResults = new Map();
 
@@ -113,7 +114,7 @@ export class GameSession {
   }
 
   submitAnswer(socketId: string, optionId: number): boolean {
-    if (this.status !== 'question') return false;
+    if (this.status !== GameStatus.QUESTION) return false;
 
     const player = this.players.get(socketId);
     if (!player || player.currentAnswer !== null) return false;
@@ -134,7 +135,7 @@ export class GameSession {
     correctOptionId: number;
     playerResults: { username: string; correct: boolean; points: number }[];
   } {
-    this.status = 'reveal';
+    this.status = GameStatus.REVEAL;
     if (this.questionTimer) {
       clearTimeout(this.questionTimer);
       this.questionTimer = null;

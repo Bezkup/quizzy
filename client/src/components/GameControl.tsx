@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import {useSocket} from '../hooks/useSocket';
 import {Button, Card} from './ui';
 import Leaderboard from './Leaderboard';
+import {GameStatus} from '../constants';
 
 interface Props {
   token: string;
@@ -17,7 +18,7 @@ export default function GameControl({ token, quizId, onExit }: Props) {
   } = useSocket(token);
 
   useEffect(() => {
-    if (connected && phase === 'idle') {
+    if (connected && phase === GameStatus.IDLE) {
       createGame(quizId);
     }
   }, [connected, phase, quizId, createGame]);
@@ -45,7 +46,7 @@ export default function GameControl({ token, quizId, onExit }: Props) {
           </div>
       )}
 
-      {phase === 'waiting' && (
+      {phase === GameStatus.WAITING && (
           <Card centered style={{padding: '2rem'}}>
           <h3>Game Code</h3>
           <div className="game-code">{gameCode}</div>
@@ -65,7 +66,7 @@ export default function GameControl({ token, quizId, onExit }: Props) {
           </Card>
       )}
 
-      {phase === 'question' && question && (
+      {phase === GameStatus.QUESTION && question && (
           <Card centered style={{padding: '2rem'}}>
             <div style={{color: '#b2bec3', marginBottom: '0.5rem'}}>
             Question {question.questionIndex + 1} / {question.totalQuestions}
@@ -76,7 +77,7 @@ export default function GameControl({ token, quizId, onExit }: Props) {
           </Card>
       )}
 
-      {phase === 'reveal' && questionResult && (
+      {phase === GameStatus.REVEAL && questionResult && (
           <Card style={{marginBottom: '1rem'}}>
           <h3>Results</h3>
             <div style={{marginTop: '1rem'}}>
@@ -95,7 +96,7 @@ export default function GameControl({ token, quizId, onExit }: Props) {
           </Card>
       )}
 
-      {phase === 'leaderboard' && (
+      {phase === GameStatus.LEADERBOARD && (
         <div>
           <Leaderboard entries={leaderboard} />
           <Button fullWidth onClick={nextQuestion} style={{marginTop: '1rem', fontSize: '1.1rem'}}>
@@ -104,7 +105,7 @@ export default function GameControl({ token, quizId, onExit }: Props) {
         </div>
       )}
 
-      {phase === 'finished' && (
+      {phase === GameStatus.FINISHED && (
         <div>
           <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>🏆 Final Results</h3>
           <Leaderboard entries={leaderboard} />

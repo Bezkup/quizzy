@@ -88,7 +88,7 @@ export interface GameState {
   currentQuestionIndex: number;
   totalQuestions: number;
   timerSeconds: number;
-  status: 'waiting' | 'question' | 'reveal' | 'leaderboard' | 'finished';
+  status: 'idle' | 'waiting' | 'question' | 'reveal' | 'leaderboard' | 'finished';
   questionStartTime: number | null;
 }
 

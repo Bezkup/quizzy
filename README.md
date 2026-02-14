@@ -9,7 +9,7 @@ A self-hosted, real-time browser quiz game built with React, Node.js, Socket.io,
 - **Exponential Scoring** — Faster answers earn more points (max 1000)
 - **Live Leaderboard** — Rankings update after each question
 - **Configurable Timer** — Set time limit per quiz
-- **Unlimited Players** — No cap on concurrent participants
+- **Unlimited Players** — No maximum concurrent participants
 - **Self-hosted** — SQLite database, no external services required
 
 ## Quick Start

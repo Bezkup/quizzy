@@ -1,13 +1,21 @@
-import {type FormEvent, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useSocket} from '../hooks/useSocket';
 import {Button, Card, Input} from '../components/ui';
 import Leaderboard from '../components/Leaderboard';
-import {GameStatus} from '../constants';
+import {GameStatus, STORAGE_KEYS} from '../constants';
 
 export default function PlayerView() {
   const [gameCode, setGameCode] = useState('');
   const [username, setUsername] = useState('');
   const [joined, setJoined] = useState(false);
+
+    // Load saved username from localStorage on mount
+    useEffect(() => {
+        const savedUsername = localStorage.getItem(STORAGE_KEYS.PLAYER_USERNAME);
+        if (savedUsername) {
+            setUsername(savedUsername);
+        }
+    }, []);
 
   const {
     phase, question, questionResult, leaderboard, error,
@@ -15,12 +23,21 @@ export default function PlayerView() {
     joinGame, submitAnswer,
   } = useSocket();
 
-  const handleJoin = (e: FormEvent) => {
+    const handleJoin = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!gameCode.trim() || !username.trim()) return;
-    joinGame(gameCode.trim(), username.trim());
+        const trimmedUsername = username.trim();
+        // Save username to localStorage
+        localStorage.setItem(STORAGE_KEYS.PLAYER_USERNAME, trimmedUsername);
+        joinGame(gameCode.trim(), trimmedUsername);
     setJoined(true);
   };
+
+    const handleReturnToHomepage = () => {
+        setJoined(false);
+        setGameCode('');
+        // Username is preserved from localStorage
+    };
 
   // Join form
     if (!joined || phase === GameStatus.IDLE) {
@@ -163,6 +180,9 @@ export default function PlayerView() {
                   <div style={{fontSize: '1.3rem', color: '#fdcb6e'}}>{myEntry.score} points</div>
             </div>
           )}
+              <Button onClick={handleReturnToHomepage} style={{marginTop: '1.5rem'}}>
+                  Return to Homepage
+              </Button>
           </Card>
         <Leaderboard entries={leaderboard} />
       </div>

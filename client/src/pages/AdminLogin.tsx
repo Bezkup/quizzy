@@ -1,4 +1,4 @@
-import {FormEvent, useState} from 'react';
+import React, {useState} from 'react';
 import {login} from '../services/api';
 import {Button, Card, Input} from '../components/ui';
 
@@ -12,7 +12,7 @@ export default function AdminLogin({ onLogin }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');

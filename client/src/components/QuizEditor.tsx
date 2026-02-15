@@ -1,4 +1,4 @@
-import {type FormEvent, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {createQuiz, getQuiz, updateQuiz} from '../services/api';
 import {Button, Card, Input} from './ui';
 
@@ -86,7 +86,7 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
     setQuestions(updated);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSaving(true);

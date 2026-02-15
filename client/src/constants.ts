@@ -51,4 +51,5 @@ export enum AdminView {
 
 export const STORAGE_KEYS = {
     AUTH_TOKEN: 'quizzy_token',
+    PLAYER_USERNAME: 'quizzy_username',
 } as const;

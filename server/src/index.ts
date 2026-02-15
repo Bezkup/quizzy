@@ -1,12 +1,14 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+import {createServer} from 'http';
+import {Server} from 'socket.io';
 import cors from 'cors';
 import authRouter from './routes/auth.js';
 import quizRouter from './routes/quizzes.js';
-import { setupSocketHandlers } from './socket/handlers.js';
-import type { ClientToServerEvents, ServerToClientEvents } from '../../shared/types.js';
+import {setupSocketHandlers} from './socket/handlers.js';
+import type {ClientToServerEvents, ServerToClientEvents} from '@shared/types';
+
+dotenv.config({path: '.env.local'});
 
 const app = express();
 const httpServer = createServer(app);

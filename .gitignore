@@ -1,7 +1,7 @@
 node_modules/
 dist/
 dist-node/
-.env
+.env.local
 *.db
 .DS_Store
 server/data/

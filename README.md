@@ -21,15 +21,23 @@ cd server && npm install
 cd ../client && npm install
 ```
 
-### 2. Setup and seed the database
+### 2. Configure environment
 
 ```bash
-cd server && npm run seed
+cd server
+cp .env .env.local
+# Edit .env.local if needed (defaults are fine for local development)
+```
+
+### 3. Setup and seed the database
+
+```bash
+npm run seed
 ```
 
 Default admin credentials: `admin` / `admin`
 
-### 3. Start development servers
+### 4. Start development servers
 
 ```bash
 # Terminal 1 — Backend
@@ -39,7 +47,7 @@ cd server && npm run dev
 cd client && npm run dev
 ```
 
-### 4. Open in browser
+### 5. Open in browser
 
 - **Players**: http://localhost:5173
 - **Admin Panel**: http://localhost:5173/admin

@@ -28,6 +28,12 @@ Answer questions with the countdown timer:
 
 ![Player Questions](docs/user_questions.png)
 
+### Live Leaderboard
+
+Rankings update after each question:
+
+![Leaderboard](docs/leaderboard.png)
+
 ## Features
 
 - **Admin Panel** — Create, edit, and manage quizzes with a web UI

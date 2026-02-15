@@ -2,6 +2,32 @@
 
 A self-hosted, real-time browser quiz game built with React, Node.js, Socket.io, and SQLite.
 
+## Screenshots
+
+### Admin Panel
+
+Create and manage quizzes, then start a game session:
+
+![Admin Panel](docs/admin_panel.png)
+
+### Game Session (Admin View)
+
+Monitor players joining and start the game:
+
+![Admin Panel - Game Start](docs/admin_panel_start.png)
+
+### Player View
+
+Join with a username and game code:
+
+![Player Join](docs/user_start.png)
+
+### Live Quiz Questions
+
+Answer questions with the countdown timer:
+
+![Player Questions](docs/user_questions.png)
+
 ## Features
 
 - **Admin Panel** — Create, edit, and manage quizzes with a web UI

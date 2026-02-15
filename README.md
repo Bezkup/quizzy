@@ -24,9 +24,7 @@ cd ../client && npm install
 ### 2. Setup and seed the database
 
 ```bash
-cd server
-cp .env .env.local  # Edit JWT_SECRET for production
-npm run seed
+cd server && npm run seed
 ```
 
 Default admin credentials: `admin` / `admin`

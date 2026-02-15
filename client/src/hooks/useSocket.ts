@@ -16,6 +16,7 @@ export interface QuestionData {
 export interface QuestionResult {
   correctOptionId: number;
   playerResults: { username: string; correct: boolean; points: number }[];
+  showAnswerFeedback: boolean;
 }
 
 export function useSocket(token?: string) {
@@ -29,6 +30,8 @@ export function useSocket(token?: string) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [answerCorrect, setAnswerCorrect] = useState<boolean | null>(null);
+  const [showAnswerFeedback, setShowAnswerFeedback] = useState<boolean>(true);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -64,6 +67,7 @@ export function useSocket(token?: string) {
       setQuestion(data);
       setQuestionResult(null);
       setSelectedAnswer(null);
+      setAnswerCorrect(null);
       setPhase(GameStatus.QUESTION);
       setTimeLeft(data.timerSeconds);
 
@@ -78,6 +82,11 @@ export function useSocket(token?: string) {
           clearInterval(timerRef.current);
         }
       }, 100);
+    });
+
+    socket.on(SocketEvent.ANSWER_FEEDBACK, ({correct, showFeedback}) => {
+      setAnswerCorrect(correct);
+      setShowAnswerFeedback(showFeedback);
     });
 
     socket.on(SocketEvent.QUESTION_END, (data) => {
@@ -160,6 +169,8 @@ export function useSocket(token?: string) {
     leaderboard,
     error,
     selectedAnswer,
+    answerCorrect,
+    showAnswerFeedback,
     timeLeft,
     createGame,
     joinGame,

@@ -13,6 +13,7 @@ export interface Quiz {
   title: string;
   description: string | null;
   timer_seconds: number;
+  show_answer_feedback: boolean;
   created_at: string;
 }
 
@@ -45,6 +46,7 @@ export interface CreateQuizDTO {
   title: string;
   description?: string;
   timer_seconds: number;
+  show_answer_feedback?: boolean;
   questions: CreateQuestionDTO[];
 }
 
@@ -113,9 +115,11 @@ export interface ServerToClientEvents {
     options: { id: number; text: string }[];
     timerSeconds: number;
   }) => void;
+  answer_feedback: (data: { correct: boolean; showFeedback: boolean }) => void;
   question_end: (data: {
     correctOptionId: number;
     playerResults: { username: string; correct: boolean; points: number }[];
+    showAnswerFeedback: boolean;
   }) => void;
   leaderboard_update: (data: { leaderboard: LeaderboardEntry[] }) => void;
   game_end: (data: { leaderboard: LeaderboardEntry[] }) => void;

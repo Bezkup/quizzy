@@ -1,4 +1,4 @@
-import { getDb } from './db.js';
+import {getDb} from './db.js';
 import bcrypt from 'bcrypt';
 
 async function seed() {
@@ -16,8 +16,8 @@ async function seed() {
 
   // Seed a sample quiz
   const quizResult = db.prepare(
-    'INSERT INTO quizzes (admin_id, title, description, timer_seconds) VALUES (?, ?, ?, ?)'
-  ).run(1, 'Sample Quiz', 'A sample quiz to get started', 15);
+      'INSERT INTO quizzes (admin_id, title, description, timer_seconds, show_answer_feedback) VALUES (?, ?, ?, ?, ?)'
+  ).run(1, 'Sample Quiz', 'A sample quiz to get started', 15, 1);
 
   const quizId = quizResult.lastInsertRowid;
 

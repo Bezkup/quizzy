@@ -110,17 +110,28 @@ export function setupSocketHandlers(io: Server<ClientToServerEvents, ServerToCli
       const session = getGameByPlayerSocket(socket.id);
       if (!session) return;
 
-      const accepted = session.submitAnswer(socket.id, optionId);
-      if (!accepted) return;
+      const result = session.submitAnswer(socket.id, optionId);
+      if (!result.success) return;
 
-      // If all players answered, end question early
+      // Send immediate feedback to the player who submitted
+      socket.emit(SocketEvent.ANSWER_FEEDBACK, {
+        correct: result.correct!,
+        showFeedback: session.showAnswerFeedback
+      });
+
+      // If all players answered, end question early (with delay for feedback)
       if (session.allPlayersAnswered()) {
-        const results = session.endQuestion();
-        io.to(session.gameCode).emit(SocketEvent.QUESTION_END, results);
+        // Cancel the normal question timer to prevent double-fire
+        session.clearQuestionTimer();
+        setTimeout(() => {
+          if (session.status !== GameStatus.QUESTION) return;
+          const results = session.endQuestion();
+          io.to(session.gameCode).emit(SocketEvent.QUESTION_END, results);
 
-        const leaderboard = session.getLeaderboard();
-        session.status = GameStatus.LEADERBOARD;
-        io.to(session.gameCode).emit(SocketEvent.LEADERBOARD_UPDATE, {leaderboard});
+          const leaderboard = session.getLeaderboard();
+          session.status = GameStatus.LEADERBOARD;
+          io.to(session.gameCode).emit(SocketEvent.LEADERBOARD_UPDATE, {leaderboard});
+        }, 2000);
       }
     });
 

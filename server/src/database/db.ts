@@ -34,6 +34,10 @@ function initializeDb(db: Database.Database): void {
       title TEXT NOT NULL,
       description TEXT,
       timer_seconds INTEGER DEFAULT 15,
+      show_answer_feedback
+      INTEGER
+      DEFAULT
+      1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (admin_id) REFERENCES admins(id)
     );

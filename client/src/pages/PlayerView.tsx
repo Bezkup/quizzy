@@ -19,7 +19,7 @@ export default function PlayerView() {
 
   const {
     phase, question, questionResult, leaderboard, error,
-    selectedAnswer, timeLeft,
+      selectedAnswer, answerCorrect, showAnswerFeedback, timeLeft,
     joinGame, submitAnswer,
   } = useSocket();
 
@@ -97,8 +97,13 @@ export default function PlayerView() {
           </h2>
         <div className="options-grid">
           {question.options.map((opt, i) => {
-            const colors = ['#e74c3c', '#3498db', '#f39c12', '#00b894', '#9b59b6', '#e84393'];
+              const colors = ['#e74c3c', '#3498db', '#3498db', '#00b894', '#9b59b6', '#e84393'];
             const isSelected = selectedAnswer === opt.id;
+
+              // Show feedback icons immediately after selection
+              const showCorrectIcon = showAnswerFeedback && isSelected && answerCorrect === true;
+              const showWrongIcon = showAnswerFeedback && isSelected && answerCorrect === false;
+            
             return (
               <button
                 key={opt.id}
@@ -108,16 +113,37 @@ export default function PlayerView() {
                   opacity: selectedAnswer !== null && !isSelected ? 0.4 : 1,
                   transform: isSelected ? 'scale(0.95)' : 'scale(1)',
                   border: isSelected ? '3px solid #fff' : '3px solid transparent',
+                    position: 'relative',
                 }}
                 onClick={() => submitAnswer(opt.id)}
                 disabled={selectedAnswer !== null}
               >
                 {opt.text}
+                  {showCorrectIcon && (
+                      <span style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          fontSize: '1.5rem',
+                      }}>
+                    ✅
+                  </span>
+                  )}
+                  {showWrongIcon && (
+                      <span style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          fontSize: '1.5rem',
+                      }}>
+                    ❌
+                  </span>
+                  )}
               </button>
             );
           })}
         </div>
-        {selectedAnswer !== null && (
+          {selectedAnswer !== null && !showAnswerFeedback && (
             <p style={{textAlign: 'center', color: '#b2bec3', marginTop: '1rem'}}>✅ Answer locked in!</p>
         )}
       </div>
@@ -127,32 +153,76 @@ export default function PlayerView() {
   // Reveal phase
     if (phase === GameStatus.REVEAL && questionResult && question) {
     const myResult = questionResult.playerResults.find((r) => r.username === username);
+        const showFeedback = questionResult.showAnswerFeedback;
+    
     return (
       <div className="page-container">
-          <Card style={{marginTop: '10vh', padding: '2rem'}}>
-          <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>
-            {myResult?.correct ? '🎉 Correct!' : '😞 Wrong!'}
-          </h2>
-              <p style={{
-                  textAlign: 'center',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  color: '#fdcb6e',
-                  marginBottom: '1rem'
-              }}>
-            {myResult?.correct ? `+${myResult.points} points` : '+0 points'}
-          </p>
-              <div style={{
-                  textAlign: 'center',
-                  padding: '1rem',
-                  background: '#00b89433',
-                  borderRadius: '10px',
-                  color: '#00b894',
-                  fontWeight: 'bold'
-              }}>
-            Correct answer: {question.options.find((o) => o.id === questionResult.correctOptionId)?.text}
-          </div>
+          {/* Feedback card - conditional based on quiz setting */}
+          {showFeedback && myResult ? (
+              <Card centered style={{marginBottom: '1.5rem', padding: '1.5rem'}}>
+                  <h2 style={{textAlign: 'center', marginBottom: '0.5rem'}}>
+                      {myResult.correct ? '🎉 Correct!' : '😞 Wrong!'}
+                  </h2>
+                  <p style={{
+                      textAlign: 'center',
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: '#fdcb6e'
+                  }}>
+                      {myResult.correct ? `+${myResult.points} points` : '+0 points'}
+                  </p>
+              </Card>
+          ) : (
+              <Card centered style={{marginBottom: '1.5rem', padding: '1.5rem'}}>
+                  <h2 style={{textAlign: 'center', marginBottom: 0}}>⏱️ Time's up!</h2>
           </Card>
+          )}
+
+          {/* Options grid with visual indicators */}
+          <div className="options-grid">
+              {question.options.map((opt, i) => {
+                  const colors = ['#e74c3c', '#3498db', '#f39c12', '#00b894', '#9b59b6', '#e84393'];
+                  const isCorrect = opt.id === questionResult.correctOptionId;
+                  const isPlayerSelection = selectedAnswer === opt.id;
+                  const showWrongIndicator = showFeedback && isPlayerSelection && !isCorrect;
+
+                  return (
+                      <button
+                          key={opt.id}
+                          className="option-btn"
+                          style={{
+                              background: colors[i % colors.length],
+                              position: 'relative',
+                              cursor: 'default',
+                              opacity: 1,
+                          }}
+                          disabled
+                      >
+                          {opt.text}
+                          {isCorrect && (
+                              <span style={{
+                                  position: 'absolute',
+                                  top: '8px',
+                                  right: '8px',
+                                  fontSize: '1.5rem',
+                              }}>
+                    ✅
+                  </span>
+                          )}
+                          {showWrongIndicator && (
+                              <span style={{
+                                  position: 'absolute',
+                                  top: '8px',
+                                  right: '8px',
+                                  fontSize: '1.5rem',
+                              }}>
+                    ❌
+                  </span>
+                          )}
+                      </button>
+                  );
+              })}
+          </div>
       </div>
     );
   }

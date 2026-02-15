@@ -30,6 +30,7 @@ export enum SocketEvent {
     QUESTION_START = 'question_start',
     QUESTION_END = 'question_end',
     SUBMIT_ANSWER = 'submit_answer',
+    ANSWER_FEEDBACK = 'answer_feedback',
     NEXT_QUESTION = 'next_question',
 
     // Leaderboard events

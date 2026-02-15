@@ -7,13 +7,14 @@ export function insertQuizWithQuestions(
     title: string,
     description: string | null,
     timerSeconds: number,
+    showAnswerFeedback: boolean,
     questions: CreateQuestionDTO[]
 ): number | bigint {
     const db = getDb();
 
     const transaction = db.transaction(() => {
-        const quizResult = db.prepare('INSERT INTO quizzes (admin_id, title, description, timer_seconds) VALUES (?, ?, ?, ?)')
-            .run(adminId, title, description, timerSeconds);
+        const quizResult = db.prepare('INSERT INTO quizzes (admin_id, title, description, timer_seconds, show_answer_feedback) VALUES (?, ?, ?, ?, ?)')
+            .run(adminId, title, description, timerSeconds, showAnswerFeedback ? 1 : 0);
         const quizId = quizResult.lastInsertRowid;
         insertQuestions(db, quizId, questions);
         return quizId;

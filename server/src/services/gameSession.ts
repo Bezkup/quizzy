@@ -19,6 +19,7 @@ export class GameSession {
   currentQuestionIndex: number;
   totalQuestions: number;
   timerSeconds: number;
+  showAnswerFeedback: boolean;
   status: GameState['status'];
   questionStartTime: number | null;
   adminSocketId: string;
@@ -47,6 +48,7 @@ export class GameSession {
     this.currentQuestionIndex = -1;
     this.totalQuestions = this.questions.length;
     this.timerSeconds = quiz.timer_seconds;
+    this.showAnswerFeedback = quiz.show_answer_feedback;
     this.status = GameStatus.WAITING;
     this.questionStartTime = null;
     this.adminSocketId = adminSocketId;
@@ -113,15 +115,21 @@ export class GameSession {
     };
   }
 
-  submitAnswer(socketId: string, optionId: number): boolean {
-    if (this.status !== GameStatus.QUESTION) return false;
+  submitAnswer(socketId: string, optionId: number): { success: boolean; correct?: boolean } {
+    if (this.status !== GameStatus.QUESTION) return {success: false};
 
     const player = this.players.get(socketId);
-    if (!player || player.currentAnswer !== null) return false;
+    if (!player || player.currentAnswer !== null) return {success: false};
 
     player.currentAnswer = optionId;
     player.answerTimestamp = Date.now();
-    return true;
+
+    // Check if answer is correct
+    const question = this.questions[this.currentQuestionIndex];
+    const correctOption = question.options.find((o) => o.is_correct);
+    const isCorrect = correctOption?.id === optionId;
+
+    return {success: true, correct: isCorrect};
   }
 
   allPlayersAnswered(): boolean {
@@ -134,6 +142,7 @@ export class GameSession {
   endQuestion(): {
     correctOptionId: number;
     playerResults: { username: string; correct: boolean; points: number }[];
+    showAnswerFeedback: boolean;
   } {
     this.status = GameStatus.REVEAL;
     if (this.questionTimer) {
@@ -161,7 +170,7 @@ export class GameSession {
       playerResults.push({ username: player.username, correct, points });
     }
 
-    return { correctOptionId, playerResults };
+    return {correctOptionId, playerResults, showAnswerFeedback: this.showAnswerFeedback};
   }
 
   getLeaderboard(): LeaderboardEntry[] {
@@ -176,11 +185,15 @@ export class GameSession {
     this.questionTimer = setTimeout(callback, this.timerSeconds * 1000);
   }
 
-  cleanup(): void {
+  clearQuestionTimer(): void {
     if (this.questionTimer) {
       clearTimeout(this.questionTimer);
       this.questionTimer = null;
     }
+  }
+
+  cleanup(): void {
+    this.clearQuestionTimer();
   }
 }
 

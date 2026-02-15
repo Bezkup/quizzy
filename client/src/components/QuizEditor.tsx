@@ -18,6 +18,7 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [timerSeconds, setTimerSeconds] = useState(15);
+  const [showAnswerFeedback, setShowAnswerFeedback] = useState(true);
   const [questions, setQuestions] = useState<QuestionForm[]>([
     { question_text: '', options: [{ option_text: '', is_correct: true }, { option_text: '', is_correct: false }] },
   ]);
@@ -30,6 +31,7 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
         setTitle(quiz.title);
         setDescription(quiz.description || '');
         setTimerSeconds(quiz.timer_seconds);
+        setShowAnswerFeedback(quiz.show_answer_feedback !== false);
         setQuestions(
           quiz.questions.map((q: { question_text: string; options: { option_text: string; is_correct: boolean }[] }) => ({
             question_text: q.question_text,
@@ -95,6 +97,7 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
       title,
       description,
       timer_seconds: timerSeconds,
+      show_answer_feedback: showAnswerFeedback,
       questions: questions.map((q, i) => ({
         question_text: q.question_text,
         order_index: i,
@@ -150,6 +153,22 @@ export default function QuizEditor({ token, quizId, onSaved, onCancel }: Props) 
             fullWidth={false}
             style={{width: '100px'}}
           />
+        </div>
+
+        <div style={styles.field}>
+          <label style={{...styles.label, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+            <input
+                type="checkbox"
+                checked={showAnswerFeedback}
+                onChange={(e) => setShowAnswerFeedback(e.target.checked)}
+                style={{width: '18px', height: '18px', cursor: 'pointer'}}
+            />
+            Show answer feedback to players
+          </label>
+          <p style={{fontSize: '0.85rem', color: '#95a5a6', marginTop: '0.25rem', marginLeft: '1.75rem'}}>
+            When enabled, players see if they got the answer right/wrong. When disabled, only the correct answer is
+            shown.
+          </p>
         </div>
 
         <h3 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Questions</h3>

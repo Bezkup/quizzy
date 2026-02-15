@@ -56,9 +56,9 @@ router.post('/', (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { title, description, timer_seconds, questions } = req.body;
+  const {title, description, timer_seconds, show_answer_feedback, questions} = req.body;
   try {
-    const quizId = insertQuizWithQuestions(req.admin!.id, title, description || null, timer_seconds || 15, questions);
+    const quizId = insertQuizWithQuestions(req.admin!.id, title, description || null, timer_seconds || 15, show_answer_feedback !== false, questions);
     res.status(201).json({ id: quizId });
   } catch (err: unknown) {
     res.status(400).json({error: err instanceof Error ? err.message : 'Failed to create quiz'});
@@ -67,7 +67,7 @@ router.post('/', (req: AuthRequest, res: Response) => {
 
 // Update a quiz
 router.put('/:id', (req: AuthRequest, res: Response) => {
-  const { title, description, timer_seconds, questions } = req.body;
+  const {title, description, timer_seconds, show_answer_feedback, questions} = req.body;
   const quiz = getQuizForAdmin(req.params.id, req.admin!.id);
   if (!quiz) {
     res.status(404).json({error: 'Quiz not found'});
@@ -77,8 +77,8 @@ router.put('/:id', (req: AuthRequest, res: Response) => {
   try {
     const db = getDb();
     db.transaction(() => {
-      db.prepare('UPDATE quizzes SET title = ?, description = ?, timer_seconds = ? WHERE id = ?')
-          .run(title, description || null, timer_seconds || 15, quiz.id);
+      db.prepare('UPDATE quizzes SET title = ?, description = ?, timer_seconds = ?, show_answer_feedback = ? WHERE id = ?')
+          .run(title, description || null, timer_seconds || 15, show_answer_feedback !== false ? 1 : 0, quiz.id);
       if (questions && Array.isArray(questions)) {
         replaceQuizQuestions(quiz.id, questions);
       }
@@ -113,6 +113,7 @@ router.get('/:id/export', (req: AuthRequest, res: Response) => {
     title: quiz.title,
     description: quiz.description,
     timer_seconds: quiz.timer_seconds,
+    show_answer_feedback: quiz.show_answer_feedback,
     questions: questions.map((q) => ({
       question_text: q.question_text,
       order_index: q.order_index,
@@ -136,9 +137,9 @@ router.post('/import', (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { title, description, timer_seconds, questions } = req.body;
+  const {title, description, timer_seconds, show_answer_feedback, questions} = req.body;
   try {
-    const quizId = insertQuizWithQuestions(req.admin!.id, title, description || null, timer_seconds || 15, questions);
+    const quizId = insertQuizWithQuestions(req.admin!.id, title, description || null, timer_seconds || 15, show_answer_feedback !== false, questions);
     res.status(201).json({ id: quizId });
   } catch (err: unknown) {
     res.status(400).json({error: err instanceof Error ? err.message : 'Failed to import quiz'});
